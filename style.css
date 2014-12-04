@@ -1,0 +1,127 @@
+ul.nav {
+	display: inline;
+}
+li.nav {
+	display: inline;
+	float: left;
+	background-color: White;
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	border: 4px solid #D3D3D3;
+	/*border-right: 0.2em solid #D3D3D3;*/
+}
+a {
+	text-decoration: none;
+	font-weight: bold;
+}
+a:link, a:visited {
+	color: black;
+}
+a.nav {
+	background-color: #FFFFFF; 
+}
+a.nav:hover {
+	background-color: #85B817;
+	color: white;
+}
+a.nav_current {
+	color:#85B817;
+	text-decoration: none;
+	font-weight: bold;
+}
+H3 {
+	display: inline;
+}
+table, th, td {
+   border: 1px solid black;
+   font-size: 14px;
+   /*height: 100%;*/
+}
+table.user, th.user, td.user {
+	border: 0px;
+}
+td, th {
+	padding: 0.3rem;
+}
+html {
+	width: 95%;
+	height: 100%;
+	margin: 0 auto;
+	border: 0px solid red;
+}
+body {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	margin: 0 auto;
+	border: 0px solid green;
+}
+header {
+	height: 93px;
+	position: relative;
+	margin-right: -8px;
+	margin-top:4px;
+	padding-top: 2px;
+	/*padding-bottom: 8px;*/
+}
+nav {
+	position: relative;
+	width:100%;
+	height:28px;
+	background-color: #D3D3D3;
+	border-left: 4px solid #D3D3D3;
+	border-right: 4px solid #D3D3D3;
+}
+section.content {
+	position: relative;
+	overflow:hidden;
+	width: 100%;
+	min-height: 100%;
+	height:auto;
+	border-left: 4px solid #D3D3D3;
+	border-right: 4px solid #D3D3D3;
+	/*border-bottom: 4px solid blue;*/
+}
+section.left {
+	position: relative;
+	width: 70%;
+	float:left;
+	margin:5px;
+	border: 0px solid yellow;
+}
+section.full {
+	position: relative;
+	width: 100%;
+	border: 0px solid yellow;
+}
+section.right {
+	position: relative;
+	width:28%;
+	float:right;
+	border: 0px solid yellow;
+}
+article.news {
+	margin:5px;
+	margin-bottom: 10px;
+	padding:5px;
+}
+article.side{
+	margin: 5px;
+	padding: 5px;
+	border:2px solid black;
+}
+footer {
+	position: fixed;
+	bottom:0;
+	left:2.5%;
+	width: 95%;
+	background-color: #D3D3D3;
+	border-left: 4px solid #D3D3D3;
+	border-right: 4px solid #D3D3D3;
+	text-align: right;
+}
+img.right {
+	float:right;
+}

@@ -1,0 +1,6 @@
+# .htaccess-Datei für Web-Verzeichnis /service
+AuthType Basic
+AuthName "Service-Bereich"
+AuthUserFile /Users/altenbernd/Sites/tippspiel/admin/.htuser
+AuthGroupFile /dev/null
+Require user mirco

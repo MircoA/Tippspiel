@@ -1,0 +1,73 @@
+table, td, tr, th {
+	border: 0px;
+}
+table {
+	border-collapse: collapse;
+}
+table thead th { 
+	border-bottom: 1px solid #ccc; 
+}
+table tfoot th { 
+	border-top: 1px solid #ccc; 
+}
+td.right_line {
+	border-right: 1px solid #ccc; 	
+}
+th.rotate {
+  /* Something you can count on */
+  height: 130px;
+  white-space: nowrap;
+}
+th.rotate > div {
+  -webkit-transform: 
+    /* Magic Numbers */
+    translate(-0.5px, 63px)
+    /* 45 is really 360 - 45 */
+    rotate(300deg);
+  transform: 
+    /* Magic Numbers */
+    translate(-1px, 64px)
+    /* 45 is really 360 - 45 */
+    rotate(300deg);
+  width: 30px;
+}
+th.rotate > div > span {
+	border-top: 1px solid #ccc;
+  /*border-bottom: 1px solid #ccc;*/
+  padding: 5px 10px;
+	width: 100px;
+	padding-left: 20px;
+}
+th.rotate_bot {
+  /* Something you can count on */
+  height: 130px;
+  white-space: nowrap;
+}
+th.rotate_bot > div {
+  -webkit-transform: 
+    /* Magic Numbers */
+    translate(-0.5px, -63px)
+    /* 45 is really 360 - 45 */
+    rotate(60deg);
+  transform: 
+    /* Magic Numbers */
+    translate(-1px, -64px)
+    /* 45 is really 360 - 45 */
+    rotate(60deg);
+  width: 30px;
+}
+th.rotate_bot > div > span {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 15px;
+  padding-left: 20px;
+}
+table.sortable tbody tr:nth-child(even) td {
+  background-color: #f0f0f0;
+}
+.line
+{
+    display:inline-block;
+    /*border-bottom:2px #5B3400 solid;*/
+    text-align:left;
+    width:280%;
+}

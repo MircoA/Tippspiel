@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+from bs4 import BeautifulSoup
+
+import peewee as pw
+import requests
+import sys
+import subprocess
+from datetime import datetime, timedelta
+
+def name2number(name):
+  if "Bayern M" in name or "Bay.M" in name or "Bayern" in name:
+    return 1
+  if "Bor.Dortmund" in name or "Dortmund" in name:
+    return 2
+  if "FC Schalke 04" in name or "Schalke" in name:
+    return 3
+  if "B.Leverkusen" in name or "Bay.Leverkusen" in name or "Leverkusen" in name:
+    return 4
+  if "VfL Wolfsburg" in name or "Wolfsburg" in name:
+    return 5
+  if "B.M'gladbach" in name or "Bor.M'gladbach" in name or "M'gladbach" in name:
+    return 6
+  if "FSV Mainz 05" in name or "Mainz" in name:
+    return 7
+  if "FC Augsburg" in name or "Augsburg" in name:
+    return 8
+  if "Hoffenheim" in name:
+    return 9
+  if "Hannover 96" in name or "Hannover" in name:
+    return 10
+  if "Hertha BSC" in name or "Hertha" in name:
+    return 11
+  if "Werder Bremen" in name or "Bremen" in name:
+    return 12
+  if "E.Frankfurt" in name or "Eint.Frankfurt" in name or "Frankfurt" in name:
+    return 13
+  if "SC Freiburg" in name or "Freiburg" in name:
+    return 14
+  if "VfB Stuttgart" in name or "Stuttgart" in name:
+    return 15
+  if "Hamburger SV" in name or "Hamburg" in name:
+    return 16
+  if "1.FC K" in name:
+    return 17
+  if "SC Paderborn" in name or "Paderborn" in name:
+    return 18
+
+sys.dont_write_bytecode = True
+
+myDB = pw.MySQLDatabase("bundesliga", host="augias", port=3306, user="bundesliga", passwd="bundesliga")
+myDB.connect()
+
+class MySQLModel(pw.Model):
+  """A base model that will use our MySQL database"""
+  class Meta:
+    database = myDB
+
+class Season(MySQLModel):
+  name = pw.CharField()
+  teams = pw.IntegerField()
+  matchdays = pw.IntegerField()
+  current_matchday = pw.IntegerField()
+  right_tendency = pw.DecimalField()
+  bonus_points = pw.DecimalField()
+  status = pw.IntegerField()
+
+class Matchday(MySQLModel):
+  season = pw.ForeignKeyField(Season)
+  matchday_number = pw.IntegerField()
+  games = pw.IntegerField()
+  status = pw.IntegerField()
+
+class Game(MySQLModel):
+  matchday = pw.ForeignKeyField(Matchday)
+  home_team_id = pw.IntegerField()
+  away_team_id = pw.IntegerField()
+  home_score = pw.IntegerField()
+  away_score = pw.IntegerField()
+  status = pw.IntegerField()
+  timestamp = pw.DateTimeField()
+
+time_end = datetime.now() + timedelta(minutes=115)
+
+#pruefen ob spiele beendet sind und noch nicht eingetragen wurden
+open_games = Game.select().join(Matchday).join(Season).where(Season.name == "Bundesliga 2014/2015",
+    Game.status == 0, Game.timestamp < time_end)
+if open_games.count() == 0:
+  exit(0)
+
+#aktuelle spiele von teletext einlesen
+matches = []
+results = []
+r = requests.get("http://www.ard-text.de/text/252")
+soup = BeautifulSoup(r.text)
+for match in soup.find_all(class_="matchPair"):
+  matches.append(match.find(href=True).text.encode("latin-1"))
+index_in_matches = 0
+# gerade laufende spiele haben ein <u> tag, dieses erkennen und das ergebnis nicht werten und das game auch wieder rausnehmen
+for result in soup.find_all(class_="matchResult"):
+  if len(result.find_all("u")) == 0:
+    results.append(result.text.encode("latin-1"))
+  else:
+    matches.pop(index_in_matches)
+    index_in_matches -= 1
+  index_in_matches += 1
+
+
+#in allen noch offenen abgelaufenen spielen nach matching mit teletext suchen und eintragen
+changed_game = False
+for game in open_games:
+  for i in range(len(matches)):
+    if game.home_team_id == name2number(matches[i].split(" - ")[0]) and game.away_team_id == name2number(matches[i].split(" - ")[1]):
+      end_result = results[i].split(" ")[0]
+      home_score = end_result.split(":")[0]
+      away_score = end_result.split(":")[1]
+      if not (home_score.isdigit() and away_score.isdigit()):
+        continue
+
+      changed_game = True
+      game.home_score = int(home_score)
+      game.away_score = int(away_score)
+      game.status = 1
+      game.save()
+
+      #setze status des (offensichtlich) aktuellen spieltages auf 3.
+      game.matchday.status = 3
+      game.matchday.save()
+
+      #setze status des spieltages auf 1, falls alle spiele des spieltages nun beendet sind.
+      missing_games = Game.select().where(Game.matchday == game.matchday, Game.status == 0)
+      if missing_games.count() == 0:
+        game.matchday.status = 1
+        game.matchday.save()
+
+#admin calculate aufrufen
+if changed_game:
+  pipe = subprocess.Popen("php /var/www/tippspiel/admin/calculate_all.php".split(), stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+  pipe.stdin.close()
