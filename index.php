@@ -1,4 +1,5 @@
-<?php
+<!-- Startseite mit News -->
+<?php //Usersession aktiv?
     session_start();
 
     $hostname = $_SERVER['HTTP_HOST'];
@@ -10,7 +11,8 @@
 	<head>
 		<title>LSIII Tippspiel - Startseite</title>
 		<link rel="stylesheet" href="style.css" />
-		    <!-- Cookies fuer Nutzerauswahl setzen/lesen/aendern -->
+	
+		<!-- Cookies fuer Nutzerauswahl setzen/lesen/aendern -->
   	<script type="text/javascript">
   		var saveclass = null;
 
@@ -55,6 +57,8 @@
   		    document.body.className = saveclass + ' ' + selectedTheme;
   		});
   	</script>
+
+  	<!-- Javascript fuer Counter bis zum Anstoss -->
   	<script language="JavaScript">
 		  
 		  /*
@@ -105,23 +109,28 @@
 	</head>
 
 	<body>
+		<!-- Anmeldebereich -->
 		<div style="height: 20px;" align="right"><?php
 
+			//Verbindungsaufbau
 			include 'admin/connect.php';
 
-		   $hostname = $_SERVER['HTTP_HOST'];
-		   $path = dirname($_SERVER['PHP_SELF']);
+		  $hostname = $_SERVER['HTTP_HOST'];
+		  $path = dirname($_SERVER['PHP_SELF']);
 
-		   if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
-		    echo '<form method="post" action="login.php">';
+		  //Nicht angemeldet
+		  if (!isset($_SESSION['angemeldet']) || !$_SESSION['angemeldet']) {
+		   	echo '<form method="post" action="login.php">';
 				echo '<select name="user_id" id="user_select" onchange="saveUser(this.value);">';
 
+				//Nutzerliste
 				$users = mysqli_query( $con,"SELECT * FROM user ORDER BY name");
 
 				if (! $users) {
 				  die('Ungültige Abfrage: ' . mysqli_error());
 				}
 
+				//Dropdown-Menu der Nutzer
 				while ($_users = mysqli_fetch_array( $users, MYSQL_ASSOC))
 				{
 					echo "<option value='" . $_users['id'] . "'>" .  $_users['name'] . " " . $_users['surname'] . " (" . $_users[username] .  ")</option>";
@@ -133,20 +142,23 @@
 		    echo '<input type="hidden" name="page" value="index.php">';
 		    echo '</form>';
 
-		   } else {
+		  } else { //angemeldet
 
 					$info = mysqli_query($con, "SELECT name, surname FROM user WHERE id = $_SESSION[id]");
 					$_info = mysqli_fetch_array($info, MYSQL_ASSOC);
 
+					//Abmeldebuton
 		    	echo '<font size=+1>' . $_info[name] . ' ' . $_info[surname] . ' ' . '<a href="logout.php">abmelden</a></font>';
-		   }
+		  }
 		?></div>
+		<!-- Kopzeile und Logo unterhalb des Anmeldebereichs -->
 		<header>
 			<img class="left" src="img/m_schrift.png" alt="logo-m!" /><span style="margin-left:25%;"><font size=8 color=#85B817><b>Tippspiel</b></font></span><img class="right" src="img/lehrstuhl3.png" alt="logo-ls3" />
 		</header>
 
+		<!-- Navgigation -->
 		<nav>
-			<ul class="nav">
+			<ul class="nav"> <!-- Tippabgabe und Nutzerverwaltung nur nach Anmeldung sichtbar -->
 				<li class="nav"><a class="nav_current" href = "index.php">Startseite</a></li>
 				<li class="nav"><a class="nav" href = "matchday.php">Spieltags&uuml;bersicht</a></li>
 				<?php if (isset($_SESSION['angemeldet']) || $_SESSION['angemeldet']) { echo '<li class="nav"><a class="nav" href = "prediction.php">Tippabgabe</a></li>'; } ?>
@@ -156,6 +168,7 @@
 			</ul>
 		</nav>
 
+		<!-- Newsbereich -->
 		<section class="content">
 			<section class="left">
 				<article class="news">
@@ -199,11 +212,13 @@
 				</article> -->
 			</section>
 			<div style="border-left:2px #D3D3D3 solid; position:absolute; left:71.9%; width:4px; height:100%;"></div>
+			<!-- Mini-Nachrichten auf der rechten Seite -->
 			<section class="right" >
 				<!-- <article class="side">
 	  			<H3>Hinweis</H3><br>
 	  			Bitte nach Abgabe der Tipps &uuml;berpr&uuml;fen, ob diese angenommen wurden. Dazu einfach die Spieltags&uuml;bersicht f&uuml;r den Spieltag aufrufen. Sollte ein Tipp angenommen worden sein, so steht dieser bei dem entsprechenden Spiel.
 				</article> -->
+				<!-- Countdown-Bereich mit Countdown zum naechsten Spiel -->
 				<article class="side">
 					<H3>N&auml;chste Spiele</H3><br>
 					<?php
@@ -215,12 +230,15 @@
 
 						$count = 1;
 
+						//Saisons die aktuell Laufen
 						$season = mysqli_query($con, "SELECT id FROM season WHERE status = 0");
 
 						while ($_season = mysqli_fetch_array($season, MYSQL_ASSOC)) {
 
+							//Zeitpunkt des naechstes Spiels der Saison, dass nicht beendet ist oder laeuft
 							$time = mysqli_query($con, "SELECT timestamp, season.name as name, matchday.name as m_name FROM game LEFT JOIN matchday on game.matchday_id = matchday.id LEFT JOIN season ON matchday.season_id = season.id WHERE game.status = 0 AND matchday.season_id = $_season[id] AND game.timestamp > NOW() ORDER BY timestamp LIMIT 1");
 							
+							//Wenn vorhanden, dann auflisten und Countdown erzeugen
 							if (mysqli_num_rows($time) > 0) {
 								$_time = mysqli_fetch_array($time, MYSQL_ASSOC);
 					?>
@@ -235,40 +253,51 @@
   					}
   				?>
 				</article>
+				<!-- Wenn angemeldet Begruessung und Anzeige von Spielen fuer die innerhalb on 7 Tagen Tipps fehlen -->
 				<?php
 					if (isset($_SESSION['angemeldet']) || $_SESSION['angemeldet']) {
 						echo '<article class="side">';
 
+						//Begruessung
 						echo 'Hallo ' . $_info[name] . ' ' . $_info[surname] . '.<br>';
 
-						// $notipps = mysqli_query($con, "SELECT matchday.matchday_number as number, h.name as home_name, a.name as away_name FROM game LEFT JOIN team h ON (game.home_team_id = h.id) LEFT JOIN team a ON (game.away_team_id = a.id) LEFT JOIN matchday ON (matchday.id = game.matchday_id) WHERE NOT EXISTS (SELECT id FROM prediction WHERE prediction.game_id = game.id AND prediction.user_id = $_SESSION[id]) AND game.status = 0 ORDER BY timestamp ASC LIMIT 9");
+						//Spiele ohne Tipp innerhalb der naechsten 7 Tage (wenn am Tippspiel teilgenommen wird)
 						$notipps = mysqli_query($con, "SELECT matchday.season_id as season_id, matchday.id as number, matchday.name as name, h.name as home_name, a.name as away_name FROM game LEFT JOIN team h ON (game.home_team_id = h.id) LEFT JOIN team a ON (game.away_team_id = a.id) LEFT JOIN matchday ON (matchday.id = game.matchday_id) WHERE NOT EXISTS (SELECT id FROM prediction WHERE prediction.game_id = game.id AND prediction.user_id = $_SESSION[id]) AND game.status = 0 AND DATE(timestamp) < DATE_SUB(DATE(NOW()), Interval -7 day) AND EXISTS (SELECT * FROM user_in_season WHERE user_in_season.user_id = $_SESSION[id] AND user_in_season.season_id = matchday.season_id) ORDER BY timestamp ASC");
 
 						$number = '';
 
+						//Schleife ueber Tipps
 						while ($_notipps = mysqli_fetch_array($notipps, MYSQL_ASSOC)) {
 
+							//Erstes Spiel
 							if ($number == '') {
 
+								//Name der Saison
 								$season_name = mysqli_query($con, "SELECT name FROM season WHERE id = $_notipps[season_id]");
 								$_season_name = mysqli_fetch_array($season_name, MYSQL_ASSOC);
 
 								echo '<br>Spiele ohne Tipp innerhalb der n&auml;chsten Woche:<br>';
-								$number = $_notipps[number];
+								$number = $_notipps[number]; //Spieltags-id setzen
 								echo '<br><u>' . $_notipps['name'] . ' ('. $_season_name[name] .'):</u><br><table class="user">';	
 							}
-							if ($number != $_notipps[number]) {
+							if ($number != $_notipps[number]) { //Ueberprufung ob anderer Spieltag (Spieltags-id vergleichen)
 
 								$season_name = mysqli_query($con, "SELECT name FROM season WHERE id = $_notipps[season_id]");
 								$_season_name = mysqli_fetch_array($season_name, MYSQL_ASSOC);
 
+								//Anderer Spieltag
 								echo '</table><br><u>' . $_notipps['name'] . ' ('. $_season_name[name] .'):</u><br><table class="user">';	
 							}
+
+							//Ausgabe des Spiels
 							echo '<tr><td class="user">' . $_notipps[home_name] . '</td><td class="user"> - </td><td class="user">' . $_notipps[away_name] . '</td></tr>';
 
+							//Spieltags-id setzen
 							$number = $_notipps[number];
 						}
 					 	echo '</table>';
+
+					 	//Keine offenen Tipps
 						if ($number == '') {
 							echo '<br>Du hast f&uuml;r alle Spiele innerhalb der n&auml;chsten Woche Tipps abgegeben.';
 						}
@@ -279,6 +308,7 @@
 
 		</section>
 
+		<!-- Footer -->
 		<footer>
 			<a href="mailto:mirco.altenbernd@mathematik.tu-dortmund.de">Kontakt</a>
 		</footer>
